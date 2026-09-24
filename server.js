@@ -77,12 +77,15 @@ const BOARD_FQBNS = {
 // moment doesn't try to spawn 60 compilers at once.
 // This was originally tuned against a real laptop's multiple CPU cores.
 // Render's free tier gives this server a TENTH of one CPU core and
-// 512MB of memory total — a completely different machine. Asking it to
-// run 8 real compiler processes at once very plausibly exhausts that
-// memory and crashes the whole server, taking every waiting request
-// down with it. 2 is a safer ceiling for hardware this small; queued
-// requests just wait their turn a bit longer instead of crashing.
-const MAX_CONCURRENT_COMPILES = 2;
+// 512MB of memory total — a completely different machine. Even at 2
+// concurrent compiles, two jobs landing at the truly same instant can
+// occasionally collide over some shared internal file arduino-cli
+// itself touches (a known, rare quirk, not something in our own code —
+// we saw one isolated case of this on real hardware too). Running
+// exactly one at a time removes any chance of two compiles ever truly
+// overlapping, trading some worst-case speed in a simultaneous-burst
+// scenario for zero chance of that collision.
+const MAX_CONCURRENT_COMPILES = 1;
 let active = 0;
 const queue = [];
 
