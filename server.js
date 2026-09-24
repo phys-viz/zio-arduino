@@ -75,7 +75,14 @@ const BOARD_FQBNS = {
 
 // Simple concurrency limiter so 60 students hitting "Compile" at the same
 // moment doesn't try to spawn 60 compilers at once.
-const MAX_CONCURRENT_COMPILES = 8;
+// This was originally tuned against a real laptop's multiple CPU cores.
+// Render's free tier gives this server a TENTH of one CPU core and
+// 512MB of memory total — a completely different machine. Asking it to
+// run 8 real compiler processes at once very plausibly exhausts that
+// memory and crashes the whole server, taking every waiting request
+// down with it. 2 is a safer ceiling for hardware this small; queued
+// requests just wait their turn a bit longer instead of crashing.
+const MAX_CONCURRENT_COMPILES = 2;
 let active = 0;
 const queue = [];
 
